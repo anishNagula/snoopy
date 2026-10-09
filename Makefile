@@ -18,14 +18,17 @@ LDFLAGS  := -nostdlib -fuse-ld=lld \
 
 SOURCES  := src/arch/aarch64/entry.S \
             src/drivers/uart/pl011.c \
+            src/kernel/fdt.c \
+            src/kernel/panic.c \
             src/kernel/main.c
+
+HEADERS  := $(shell find src/include -type f)
 
 .PHONY: all run clean inspect
 
 all: build/snoopy.img
 
-build/snoopy.elf: $(SOURCES) linker.ld \
-                src/include/drivers/uart.h
+build/snoopy.elf: $(SOURCES) $(HEADERS) linker.ld
 	mkdir -p build
 	$(CC) $(CFLAGS) $(LDFLAGS) $(SOURCES) -o $@
 
@@ -43,7 +46,7 @@ run: build/snoopy.img
 		-kernel build/snoopy.img
 
 inspect: build/snoopy.elf
-	$(LLVM_BIN)/llvm-objdump -d $<
+	$(LLVM_BIN)/llvm-objdump -d build/snoopy.elf
 
 clean:
 	rm -rf build

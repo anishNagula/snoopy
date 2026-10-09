@@ -16,14 +16,35 @@ _image_start:
     .word   0           // reserved
 
 _start:
-    // establish 16-byte-aligned stack before calling C
-    adrp    x0, __stack_top
-    add     x0, x0, :lo12:__stack_top
-    mov     sp, x0
+    // x0 contains DTB address on entry
+    // preserve it before using registers for initialization
+    mov     x19, x0
 
-    // enter the generic kernel
-    bl      kernel_main
+    // clear .bss in 8-byte units
+    adrp    x1, __bss_start
+    add     x1, x1, :lo12:__bss_start
 
-1:
+    adrp    x2, __bss_end
+    add     x2, x2, :lo12:__bss_end
+
+    mov     x3, xzr
+
+.Lclear_bss:
+    cmp     x1, x2
+    b.hs    .Lbss_done
+    str     x3, [x1], #8
+    b       .Lclear_bss
+
+.Lbss_done:
+    // init stack after clearing .bss
+    adrp    x1, __stack_top
+    add     x1, x1, :lo12:__stack_top
+    mov     sp, x1
+
+    // pass preserved device-tree pointer to C
+    mov x0, x19
+    bl kernel_main
+
+.Lhalt:
     wfe
-    b   1b
+    b       .Lhalt

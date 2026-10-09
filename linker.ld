@@ -23,15 +23,19 @@ SECTIONS
 
     .bss  (NOLOAD) : ALIGN(16)
     {
-        __bss_start = .;
-        *(.bss .bss.*)
-        *(COMMON)
+       . = ALIGN(16);
+       __bss_start = .;
 
-        . = ALIGN(16);
-        . += 16384;
-        __stack_top = .;
+       *(.bss .bss.*)
+       *(COMMON)
 
-        __bss_end = .;
+       // reserve a 16KiB bootstrap stack
+       . = ALIGN(16);
+       . += 16384;
+       __stack_top = .;
+
+       . = ALIGN(16);
+       __bss_end = .;
     }
 
     /DISCARD/ :
