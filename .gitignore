@@ -1,0 +1,14 @@
+# Build and Output Directories
+build/
+dist/
+out/
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
