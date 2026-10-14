@@ -1,13 +1,6 @@
 #include "drivers/uart.h"
 #include "kernel/mmu.h"
 
-// Simple delay loop to slow down the text output
-void spin_delay(volatile unsigned int count) {
-    while (count--) {
-        __asm__ volatile("nop");
-    }
-}
-
 void kernel_main(void) {
   uart_init();
   kprint("[" CLR_GREEN "BOOT" CLR_RESET "] UART interface initialized.\n");

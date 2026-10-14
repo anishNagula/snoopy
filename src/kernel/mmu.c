@@ -2,40 +2,43 @@
 #include <stdint.h>
 
 // descriptor bit definitions
-#define DESC_VALID      (1UL << 0)
-#define DESC_TABLE      (1UL << 1)  // level 0, 1, 2 pointing to next table
+#define DESC_VALID      (1UL << 0)  // marks descriptor entry as valid if 1, else 0
+#define DESC_TABLE      (1UL << 1)  // level 0, 1, 2 pointing to next table's physical address
 #define DESC_BLOCK      (0UL << 1)  // level 1, 2 termination blocks
 
 
-#define DESC_AF         (1UL << 10)
-#define DESC_SH_INNER   (3UL << 8)
-#define DESC_SH_NONE    (0UL << 8)
-#define DESC_AP_RW_EL1  (0UL << 6)
+#define DESC_AF         (1UL << 10) // must be set to 1, hardware sets it automatically when page/block is accessed, if 0 CPU throws error
+#define DESC_SH_INNER   (3UL << 8)  // ensures cache coherence between multiple CPU cores }
+#define DESC_SH_NONE    (0UL << 8)  // used for memory-mapped device I/O                  }
+#define DESC_AP_RW_EL1  (0UL << 6)  // 0 restricts r/w access to EL1(kernel) and blocks EL0(user)
 #define DESC_ATTR(idx)  ((uint64_t)(idx) << 2)
-#define DESC_PXN        (1UL << 53)
-#define DESC_UXN        (1UL << 54)
+#define DESC_PXN        (1UL << 53) // privileged execute never
+#define DESC_UXN        (1UL << 54) // unprivileged execute never
 
 // composite block descriptors
 #define BLOCK_NORMAL \
     (DESC_VALID | DESC_BLOCK | DESC_AF | \
-     DESC_SH_INNER | DESC_AP_RW_EL1 | DESC_ATTR(0))
+     DESC_SH_INNER | DESC_AP_RW_EL1 | DESC_ATTR(0))   // designed for CPU-managed RAM (caching, reordering and 
+                                                      // multi-core sharing improve performance)
 
 #define BLOCK_DEVICE \
     (DESC_VALID | DESC_BLOCK | DESC_AF | \
-     DESC_SH_NONE | DESC_AP_RW_EL1 | DESC_ATTR(1) | DESC_PXN  | DESC_UXN)
+     DESC_SH_NONE | DESC_AP_RW_EL1 | DESC_ATTR(1) | DESC_PXN  | DESC_UXN)   // designed for Hardware Peripherals / Memory-Mapped I/O like
+                                                                            // UART controllers, timers, and interrupt controllers
+                                                                            // (strict ordering, no caching and hardware safery constraints are mandatory)
 
 // MAIR & TCR settings
-#define MAIR_NORMAL_WB  0xFFUL
-#define MAIR_DEVICE_NG  0x00UL
+#define MAIR_NORMAL_WB  0xFFUL      // normal memory, inner/outer write-back cacheable
+#define MAIR_DEVICE_NG  0x00UL      // device memory, non-gathering, non-reorderable, no early write acknowledgement, ideal for MMIO registers
 #define MAIR_VALUE      ((MAIR_DEVICE_NG << 8) | MAIR_NORMAL_WB)
 
-#define TCR_T0SZ        (16UL << 0)
-#define TCR_IRGN0_WB    (1UL << 8)
-#define TCR_ORGN0_WB    (1UL << 10)
-#define TCR_SH0_INNER   (3Ul << 12)
-#define TCR_TG0_4K      (0UL << 14)
-#define TCR_EPD1        (1UL << 23)
-#define TCR_IPS_48BIT   (5UL << 32)
+#define TCR_T0SZ        (16UL << 0) // sets the size offset for TTBR0_EL1
+#define TCR_IRGN0_WB    (1UL << 8)  // inner cacheability for table walks
+#define TCR_ORGN0_WB    (1UL << 10) // outer cacheability for table walks
+#define TCR_SH0_INNER   (3Ul << 12) // shareability for table walks
+#define TCR_TG0_4K      (0UL << 14) // specifies a 4KB granule size
+#define TCR_EPD1        (1UL << 23) // disable translation table walk for TTBR1
+#define TCR_IPS_48BIT   (5UL << 32) // intermediate physical address size
 #define TCR_VALUE       (TCR_T0SZ | TCR_IRGN0_WB | TCR_ORGN0_WB | \
                          TCR_SH0_INNER | TCR_TG0_4K | TCR_EPD1 | TCR_IPS_48BIT)
 
