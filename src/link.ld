@@ -6,6 +6,7 @@ SECTIONS {
   /* .text.boot first */
   .text : {
     KEEP(*(.text.boot))
+    KEEP(*(.text.vectors))
     *(.text .text.*)
   }
 
@@ -19,12 +20,12 @@ SECTIONS {
     *(.data .data.*)
   }
 
-  . = ALIGN(8);
+  . = ALIGN(4096);
   .bss : {
     __bss_start = .;
     *(.bss .bss.*)
     *(COMMON)
-    . = ALIGN(8);
+    . = ALIGN(4096);
     __bss_end = .;
   }
 
