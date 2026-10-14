@@ -1,0 +1,45 @@
+.section .text.boot
+.global _start
+
+_start:
+  mrs   x0, CurrentEL
+  lsr   x0, x0, #2
+  cmp   x0, #1
+  beq   .el1_ready
+
+  // set EL1 to run in 64-bit
+  mov   x0, #(1 << 31)
+  msr   hcr_el2, x0
+
+  // configures PSTATE for EL1h mode
+  mov   x0, #0x3c5
+  msr   spsr_el2, x0
+
+  // loads PC relative memory address of the .el1_ready label
+  adr   x0, .el1_ready
+  // when eret execs, CPU will jump to this addr in EL1
+  msr   elr_el2, x0
+
+  eret
+
+
+.el1_ready:
+  mov   x0, #(3 << 20)
+  msr   cpacr_el1, x0
+  isb
+
+  ldr   x0, =_stack_top
+  mov   sp, x0
+
+  ldr   x1, =__bss_start
+  ldr   x2, =__bss_end
+
+.zero_bss:
+  cmp   x1, x2
+  bge   .call_kernel
+  str   xzr, [x1], #8
+  b     .zero_bss
+
+.call_kernel:
+  bl    kernel_main
+  b     .
