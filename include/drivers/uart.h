@@ -27,6 +27,9 @@
 #define UARTCR_TXE      (1 << 8)  // Transmit enable
 #define UARTCR_RXE      (1 << 9)  // Receive enable
 
+#define CLR_RESET   "\033[0m"
+#define CLR_GREEN   "\033[32m"
+
 // Helper macro: read a PL011 register
 #define UART_REG(offset) \
     (*(volatile uint32_t *)(UART_BASE + (offset)))
