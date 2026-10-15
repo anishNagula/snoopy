@@ -3,6 +3,7 @@
 #include "kernel/exceptions.h"
 #include "kernel/gic.h"
 #include "kernel/timer.h"
+#include "kernel/heap.h"
 
 void kernel_main(void) {
   uart_init();
@@ -19,6 +20,34 @@ void kernel_main(void) {
 
   timer_init(500);
   kprint("[" CLR_GREEN "BOOT" CLR_RESET "] Timer: armed\n");
+
+  heap_init();
+  kprint("[" CLR_GREEN "BOOT" CLR_RESET "] Heap: ready\n");
+
+  void *a = kmalloc(128);
+  void *b = kmalloc(64);
+  void *c = kmalloc(256);
+
+  kprint("a="); kprint_ptr(a);
+  kprint(" b="); kprint_ptr(b);
+  kprint(" c="); kprint_ptr(c);
+  kprint("\n");
+  
+  kprint("[" CLR_GREEN "TEST" CLR_RESET "] allocated a, b, c\n");
+  heap_dump();
+
+  kfree(b);
+  kprint("[" CLR_GREEN "TEST" CLR_RESET "] freed b\n");
+  heap_dump();
+
+  void *d = kmalloc(48);
+  kprint("[" CLR_GREEN "TEST" CLR_RESET "] allocated d (should reuse b slot)\n");
+  heap_dump();
+
+  kfree(a);
+  kfree(c);
+  kfree(d);
+  kprint("[" CLR_GREEN "TEST" CLR_RESET "] freed all: heap should be mostly coalesced\n");
 
   asm volatile("msr daifclr, #2");
   kprint("[" CLR_GREEN "BOOT" CLR_RESET "] Interrupts enabled: Waiting for timer...\n");
