@@ -11,6 +11,15 @@
 #define HEAP_ALIGN 8
 
 
+typedef struct block_header {
+    size_t size;                    // payload bytes (excludes header)
+    int is_free;                    // 1 = free, 0 = allocated
+    struct block_header *next;      // next block in chain
+} block_header_t;
+
+#define HEADER_SIZE ALIGN_UP(sizeof(block_header_t), HEAP_ALIGN)
+
+
 // call once before any kmalloc from main
 void heap_init(void);
 

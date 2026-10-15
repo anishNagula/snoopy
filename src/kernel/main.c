@@ -27,11 +27,6 @@ void kernel_main(void) {
   void *a = kmalloc(128);
   void *b = kmalloc(64);
   void *c = kmalloc(256);
-
-  kprint("a="); kprint_ptr(a);
-  kprint(" b="); kprint_ptr(b);
-  kprint(" c="); kprint_ptr(c);
-  kprint("\n");
   
   kprint("[" CLR_GREEN "TEST" CLR_RESET "] allocated a, b, c\n");
   heap_dump();
