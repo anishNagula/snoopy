@@ -35,11 +35,11 @@ void sync_exception_handler(void) {
     uint32_t iss = esr & 0x01FFFFFF;
 
     kprint("\n[SYNC EXCEPTION]\n");
-    kprint("  ESR_EL1 = "); print_hex(esr);  kprint("\n");
-    kprint("  ELR_EL1 = "); print_hex(elr);  kprint("\n");
-    kprint("  FAR_EL1 = "); print_hex(far);  kprint("\n");
-    kprint("  ES      = "); print_hex(ec);   kprint("\n");
-    kprint("  ISS     = "); print_hex(iss);  kprint("\n");
+    kprint("  ESR_EL1 = "); print_hex(esr);  kprint("\n");      // exception syndrome register: captures why exception happend
+    kprint("  ELR_EL1 = "); print_hex(elr);  kprint("\n");      // exception link register: holds exact PC addr of faulting instr
+    kprint("  FAR_EL1 = "); print_hex(far);  kprint("\n");      // fault address register: contains memory address which was accessed
+    kprint("  ES      = "); print_hex(ec);   kprint("\n");      // exception class: tell category of the event
+    kprint("  ISS     = "); print_hex(iss);  kprint("\n");      // instruction specific syndrome: provides extra context
 
     // spin, unrecoverable
     while (1);
